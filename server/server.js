@@ -4,8 +4,10 @@ var bodyParser = require('body-parser');
 var {mongoose} = require('./db/mongoose.js');
 var {Todo} = require('./models/todo');
 var {User} = require('./models/user');
+var {ObjectID} = require('mongodb');
 
 var app = express();
+const port = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 
@@ -20,9 +22,44 @@ app.post('/todos', (req, res) => {
 		res.status(400).send(e);
 	});
 	console.log(req.body);
-})
-
-
-app.listen(80, () => {
-	console.log('Started on port 80');
 });
+
+app.get('/todos', (req, res) => {
+	Todo.find().then((todos) => {
+		res.send({todos});
+	}, (e) => {
+		res.status(400).send(e);
+	});
+});
+
+// GET /todos/123123
+app.get('/todos/:id', (req, res) => {
+	var id = req.params.id;
+	
+	//Valid id using isValid
+	if(!ObjectID.isValid(id)) {
+		//404 - send back empty send
+		return res.status(404).send();
+	}
+
+	Todo.findById(id).then((todo) => {
+		if(!todo) {
+			return res.status(404).send();
+		}
+		return res.status(200).send({todo});
+	}, (e) => {
+		return res.status(400).send();
+	});
+	//findById
+		 //success
+			//if todo - send it back
+			//if no todo - send back 404 with empty body
+		//error
+			//400 - and send empty body back
+});
+
+app.listen(port, () => {
+	console.log(`Started on port ${port}`);
+});
+
+module.exports = {app};
