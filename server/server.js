@@ -8,6 +8,7 @@ var {mongoose} = require('./db/mongoose.js');
 var {Todo} = require('./models/todo');
 var {User} = require('./models/user');
 var {ObjectID} = require('mongodb');
+var {authenticate} = require('./middleware/authenticate');
 
 var app = express();
 const port = process.env.PORT || 80;
@@ -53,12 +54,6 @@ app.get('/todos/:id', (req, res) => {
 	}, (e) => {
 		return res.status(400).send();
 	});
-	//findById
-		 //success
-			//if todo - send it back
-			//if no todo - send back 404 with empty body
-		//error
-			//400 - and send empty body back
 });
 
 app.delete('/todos/:id', (req, res) => {
@@ -117,6 +112,10 @@ app.post('/users', (req, res) => {
 	}).catch((e) => {
 		res.status(400).send(e);
 	});
+});
+
+app.get('/users/me', authenticate, (req, res) => {
+	res.send(req.user);
 });
 
 app.listen(port, () => {
